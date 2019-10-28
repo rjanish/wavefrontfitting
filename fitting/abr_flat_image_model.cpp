@@ -7,9 +7,7 @@ using namespace std;
 #define NUM_PIXELS_X 120
 #define NUM_PIXELS_Y 120
 #define PIXEL_WIDTH 0.0000135
-#define NUM_COMMON_FIT_PARAMS 4
-
-#define DEFOCUS_SUM 8.525e-5
+#define NUM_COMMON_FIT_PARAMS 5
 
 void flat_image_model(double pixel_number, double fit_params[], 
                       double *brightness, double gradient[], 
@@ -50,18 +48,7 @@ void flat_image_model(double pixel_number, double fit_params[],
     {
         param_subset[j - num_split_params*minus_defocus] = fit_params[j];
     }
-    
 
-    // Eliminate independence of seeing and defocus terms, 
-    // negate a_x, c_x, t_x for negative df image
-    if (minus_defocus)
-    {
-        param_subset[7] = DEFOCUS_SUM - fit_params[7];
-        param_subset[10] = fit_params[10];
-        param_subset[1] = (-1)*param_subset[1]; // coma_x
-        param_subset[3] = (-1)*param_subset[3]; // astig_x
-        param_subset[5] = (-1)*param_subset[5]; // tilt_x
-    }
     // call 2d image model 
     double gradient_subset[size_of_param_subset + 1];
     blurred_image_model(pixel_coordinate_x, pixel_coordinate_y, param_subset,
@@ -82,7 +69,6 @@ void flat_image_model(double pixel_number, double fit_params[],
         gradient[j + distance_to_dual_param] = 0.0;
     }
 
-
     return;
 }
 
@@ -90,4 +76,3 @@ void flat_image_model(double pixel_number, double fit_params[],
 #undef NUM_PIXELS_Y
 #undef PIXEL_WIDTH 
 #undef NUM_COMMOM_FIT_PARAMS
-#undef DEFOCUS_SUM

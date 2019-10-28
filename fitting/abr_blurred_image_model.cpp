@@ -1,8 +1,13 @@
 #include "abr_fit_image.h"
 #include <cmath>
+//DEBUG
+// #include <iostream>
+// #include <fstream>
+// #include <cfloat>
+//END DEBUG
 using namespace std;
 
-#define KERNEL_DIM 3
+#define KERNEL_DIM 13
 #define NUM_BLR_PARAMS 10
 #define NUM_UNBLR_PARAMS 9
 
@@ -13,16 +18,40 @@ void blurred_image_model(double blr_x_im, double blr_y_im,
                          double blr_partials[], 
                          double pixel_width)
 {
+    // DEBUG
+    // ofstream steps("param_sorting.txt");
+    // steps.precision(DBL_DIG);
+    // END DBUG
+
+
     // useful names
-    const double seeing_rad = blr_params[10];
+    const double seeing_rad = blr_params[5];
     const int num_unblr_params = num_blr_params - 1;
     double unblr_params[NUM_UNBLR_PARAMS + 1];
-    for (int param = 1; param <= num_unblr_params; param++)
+    for (int param = 1; param <= 4; param++)
     {
         unblr_params[param] = blr_params[param];
     }
+    for (int param = 5; param <= num_unblr_params; param++)
+    {
+        unblr_params[param] = blr_params[param+1];
+    }
     const int kcenter = KERNEL_DIM/2.0; // cast to int truncates 
                                         // (ie, floor function)
+
+    //DEBUG
+    // for (int param = 1; param <= num_blr_params; param++)
+    // {
+    //     steps << blr_params[param] << endl;
+    // }
+    // steps << endl;
+    // for (int param = 1; param <= num_blr_params - 1; param++)
+    // {
+    //     steps << unblr_params[param] << endl;
+    // }
+    // steps << endl
+    //       << seeing_rad << endl << endl;
+    //END DEBUG
     
 
     // compute kernel and kernel coordinates
@@ -96,28 +125,37 @@ void blurred_image_model(double blr_x_im, double blr_y_im,
         {
             blr_bightness_tmp += \
                 kernel[ky][kx]*unblr_brightness[ky][kx];
+
             for (int param = 1; param <= num_unblr_params; param++)
             {
                 blr_partials_tmp[param] += \
                     kernel[ky][kx]*unblr_partials[ky][kx][param];
             }
+
             double kernel_diff = 1 - kernel[ky][kx]*kernel_size;
-            if (abs(kernel_diff) > 10e-10)
-            {
-                double deriv_kernel = \
+            double deriv_kernel = \
                     (1.0/(kernel_sum*seeing_rad))*kernel_diff;
-                blr_partials_tmp[num_unblr_params + 1] += \
+            blr_partials_tmp[num_unblr_params + 1] += \
                     deriv_kernel*unblr_brightness[ky][kx];
-            }
+            
 
         }    
     }
 
     *blr_brightness = blr_bightness_tmp;
-    for (int param = 0; param <= num_blr_params; param++)
+    for (int param = 1; param <= 4; param++)
     {
         blr_partials[param] = blr_partials_tmp[param];
     }
+    blr_partials[5] = blr_partials_tmp[10];
+    for (int param = 6; param <= 10; param++)
+    {
+        blr_partials[param] = blr_partials_tmp[param-1];
+    }
+
+    // DEBUG
+    // steps.close();
+    // END DBUG
 
     return;
 }

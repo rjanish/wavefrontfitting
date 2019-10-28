@@ -8,9 +8,8 @@ using namespace std;
 #define NUM_PIXELS_X 120
 #define NUM_PIXELS_Y 120
 #define TOTAL_PIXELS 2*120*120
-   // THESE ARE PURPOSEFULY LEFT INCORRECT 
-#define NUM_FIT_PARAMS 16
-#define NUM_COMMOM_FIT_PARAMS 4
+#define NUM_FIT_PARAMS 15
+#define NUM_COMMOM_FIT_PARAMS 5
 
 int main(int argc, char* argv[])
 {
@@ -19,23 +18,24 @@ int main(int argc, char* argv[])
     //                                           astig_x, astig_y, tilt_x,
     //                                           tilt_y, defocus,   
     //                                           pupil_flux, background]
-    // total param array = [empty, 
-    //      coma_x, coma_y, astig_x, astig_y,  
-    //      tilt_x+, tilt_y+, defocus+, pupil_flux+, background+, seeing+,
-    //      tilt_x-, tilt_y-, defocus-, upil_flux-, background-, seeing- ] 
+    // total param array = [empty, coma_x, coma_y, astig_x, astig_y, 
+    //                      tilt_x+, tilt_y+, defocus+, 
+    //                      pupil_flux+, background+, seeing+,
+    //                      tilt_x-, tilt_y-, defocus-, 
+    //                      pupil_flux-, background-, seeing-] 
     // In both cases the paramters start at index 1 and index 0 holds 
     // garbage data. This is because the nr lev-mar routine wants to work 
     // with 1-indexed arrays. 
 
     // if -v argument is not used, the output is:
     //              0: FITS filename
-    //        [1, 14]: initial guesses
-    //       [15, 29]: best fit values
-    //      [30, 226]: covariance matrix 
-    //            227: number of iterations
-    //            228: final chi squared value
-    //            229: total degrees of freedom 
-    //            230: final lamda value (lev-mar damping factor)
+    //        [1, 16]: initial guesses
+    //       [17, 32]: best fit values
+    //      [33, 288]: covariance matrix 
+    //            289: number of iterations
+    //            290: final chi squared value
+    //            291: total degrees of freedom 
+    //            292: final lamda value (lev-mar damping factor)
 
     int verbose = 0;
     int start_of_filenames = 1;
@@ -71,7 +71,8 @@ int main(int argc, char* argv[])
         double param_guesses[NUM_FIT_PARAMS + 1]; 
         compute_initial_guesses(flat_image_array, NUM_FIT_PARAMS,
                                 NUM_COMMOM_FIT_PARAMS, NUM_PIXELS_X, 
-                                NUM_PIXELS_Y, param_guesses);
+                                NUM_PIXELS_Y, param_guesses,
+                                argv[file_num]);
 
         // compute errors
         double flat_errors_array[TOTAL_PIXELS];
@@ -98,21 +99,14 @@ int main(int argc, char* argv[])
         double chisq_tol = 0.01;
         int num_successes = 5;
         
-        // run fits
+        // set seeing guesses and re-fit
         int seeing = 0;
         lev_mar_fit(pixel_number_vec, flat_image_vec, flat_errors_vec,
                     TOTAL_PIXELS, param_guesses, NUM_FIT_PARAMS, 
                     covar_matrix, &chisq, chisq_tol, num_successes, 
                     verbose, seeing);
-        // set seeing guesses and re-fit
-        seeing = 1;
-        param_guesses[10] = 3.0;
-        param_guesses[16] = 3.0; // - will become seeing+ anyway
-        lev_mar_fit(pixel_number_vec, flat_image_vec, flat_errors_vec,
-                    TOTAL_PIXELS, param_guesses, NUM_FIT_PARAMS, 
-                    covar_matrix, &chisq, chisq_tol, num_successes, 
-                    verbose, seeing);
-        
+    
+            
         
         // clean up
         free_vector(pixel_number_vec, 1, TOTAL_PIXELS); 

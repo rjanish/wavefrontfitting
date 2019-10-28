@@ -137,7 +137,7 @@ void lev_mar_fit(double pixel_number[], double flat_image[], double errors[],
                  << " +- " << sqrt(covar_matrix[i][i]) << endl;
         }
     }
-    else if (seeing)
+    else
     {
         // best fit results
         for (int i = 1; i <= num_fit_params; i++) 

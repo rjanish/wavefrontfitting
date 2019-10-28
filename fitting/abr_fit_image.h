@@ -65,7 +65,8 @@ void grad_frac_below_circle_wrt_dfposition(double x, double y, double R,
 void compute_initial_guesses(double flat_image[],
                              int num_fit_params, int num_common_fit_params,
                              int num_x_pixels, int num_y_pixels, 
-                             double param_guesses[]);
+                             double param_guesses[],
+                             char* file_name);
     // Compute initial guesses for the parameters by analyzing each image for each aberration in turn, assuming that all other aberrations are zero. 
 
 #endif 
